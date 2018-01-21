@@ -24,7 +24,6 @@ library(knitr)
 library(dplyr)
 library(GGally)
 library(gridExtra)
-library(skimr)
 ```
 
 ## Understanding the data
@@ -96,18 +95,22 @@ str(ld)
 
 ## Univariate Plots Section
 
-### Analysing how the **Loan Status** variable is distributed
-```{r warning=FALSE, message=FALSE, echo=FALSE, loan_status}
+#### Analysing how the **Loan Status** variable is distributed
+```{r warning=FALSE, message=FALSE, echo=FALSE, fig.height=3, loan_status}
 ggplot(data = ld
        ,aes(x = LoanStatus)) +
   geom_histogram(color = I('black')
                  ,fill = I('#099DD9')
                  ,stat='count') +
   theme_bw(base_size = 10) +
-  theme(axis.text.x=element_text(angle=60,hjust=1))
+  theme(axis.text.x=element_text(angle=60,hjust=1),
+        axis.title.x=element_blank())
 
 table(ld$LoanStatus)
 ```
+
+---
+
 By taking a look at the plot and the table above, we can easily see that 
 the **Current** status is the highest one. Also, we can realize that there is
 not many loans with delay on payments. However, the number of **Chargeoffs** is
@@ -118,9 +121,10 @@ Another interesting thing to keep in mind is that in the analysed period there
 are no loans that have been **Canceled**.
 
 Let's keep going.
+
 ---
 
-### Analysing how the Loan Amount variable is distributed
+#### Analysing how the Loan Amount variable is distributed
 ```{r echo=FALSE, warning=FALSE, message=FALSE, loan_amount}
 plot1 <- ggplot(data = ld
        ,aes(x = LoanOriginalAmount)) +
@@ -141,19 +145,39 @@ grid.arrange(plot1, plot2, nrow=2)
 
 summary(ld$LoanOriginalAmount)
 ```
-The Loan values range from $1,000 to $35,000 and we have some common values
-in this interval, something around $4,000, $10,000 and $15,000.
+
 ---
 
-### Analysing how the Listings are distributed across the Risk Ratings and their
-rates.
-```{r echo=FALSE, warning=FALSE, message=FALSE, listings}
+The Loan values range from $1,000 to $35,000 and we have some common values
+in this interval, something around $4,000, $10,000 and $15,000.
+
+---
+
+#### Analysing how the Listings are distributed across the **Risk Ratings** and their rates.
+```{r echo=FALSE, warning=FALSE, message=FALSE, fig.height=3, listings}
 ggplot(data = ld
        ,aes(x = ProsperRating..Alpha.)) +
   geom_histogram(color = I('black')
                  ,fill = I('#099DD9')
                  ,stat='count')
 
+table(ld$ProsperRating..Alpha.)
+```
+
+---
+
+The **Risk Ratings** defined by **Prosper** represent an estimated average
+annualized loss rate range. With **AA** being the lowest risk and **HR** the 
+highest risk associated.
+
+In this histogram we can see a **Normal Distribution** where the upper and lower
+bounds present a small frequency, and we have higher frequencies in the middle.
+
+Besides that, we see that we have **131** registries without a defined Rating
+(i.e. blank).
+---
+
+```{r}
 # ... Associated effective yield of investment in percent ...
 ggplot(data = ld
        ,aes(x = EstimatedEffectiveYield)) +
@@ -188,8 +212,13 @@ ggplot(data = ld
 summary(ld$BorrowerRate)
 ```
 
+---
+
 If we look to the **Estimated Effective Yield** distribution according to the 
 **Risk** associated, what we will find?
+
+---
+
 ```{r echo=FALSE, warning=FALSE, message=FALSE, yield_by_risk}
 # OBSERVE THE ESTIMATED EFFECTIVE YIELD BY SUBSETING TO HIGHER RISK INVESTMENTS AND LOWER RISK
 lower_risk <- ggplot(data = subset(ld, ProsperRating..Alpha. <= 'C'),
