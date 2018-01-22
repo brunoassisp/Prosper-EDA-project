@@ -39,8 +39,7 @@ set.seed(2)
 columns_list <- c('LoanStatus'
                   ,'LoanOriginalAmount'
                   ,'BorrowerRate'
-                  ,'EstimatedEffectiveYield'
-                  ,'EstimatedLoss'
+                  ,'EstimatedReturn'
                   ,'ProsperRating..Alpha.'
                   ,'ProsperScore'
                   ,'CurrentDelinquencies'
@@ -77,138 +76,33 @@ ld <- subset(loanData
 str(ld)
 ```
 
-## Univariate Plots Section
+```{r}
+install.packages('devtools')
+devtools::install_github("ropenscilabs/skimr")
+library(skimr)
 
-> **Tip**: In this section, you should perform some preliminary exploration of
-your dataset. Run some summaries of the data and create univariate plots to
-understand the structure of the individual variables in your dataset. Don't
-forget to add a comment after each plot or closely-related group of plots!
-There should be multiple code chunks and text sections; the first one below is
-just to help you get started.
-
-Analysing how the Loan Status variable is distributed
-```{r warning=FALSE, message=FALSE, echo=FALSE, Univariate_Plots}
-LoanStatus_ord_lvl <- c(levels(ld$LoanStatus)[1:6]
-      ,levels(ld$LoanStatus)[8:12]
-      ,'Past Due (>120 days)')
-ld$LoanStatus <- ordered(ld$LoanStatus, levels = LoanStatus_ord_lvl)
-
-ggplot(data = ld
-       ,aes(x = LoanStatus)) +
-  geom_histogram(color = I('black')
-                 ,fill = I('#099DD9')
-                 ,stat='count') +
-  theme_bw(base_size = 10) +
-  theme(axis.text.x=element_text(angle=60,hjust=1))
-
-table(ld$LoanStatus)
-```
-
-Analysing how the Loan Amount variable is distributed
-```{r warning=FALSE, message=FALSE}
-plot1 <- ggplot(data = ld
-       ,aes(x = LoanOriginalAmount)) +
-  geom_histogram(color = I('black')
-                 ,fill = I('#ffc04d')
-                 ,binwidth = 1000) +
-  scale_x_continuous(breaks = seq(0,35000,2500))
-
-plot2 <- ggplot(data = ld
-       ,aes(x = LoanOriginalAmount)) +
-  geom_histogram(color = I('black')
-                 ,fill = I('#ffc04d')
-                 ,binwidth = .05) +
-  scale_x_log10()
-
-grid.arrange(plot1, plot2, nrow=2)
-
-summary(ld$LoanOriginalAmount)
-```
-
-Analysing how the Listings are distributed across the Risk Ratings
-```{r warning=FALSE, message=FALSE}
-# ... Redefining the Rating order, from the Lower to the Higher Risk ...
-ProsperRating_ord_lvl <- c('', 'AA', 'A', levels(ld$ProsperRating..Alpha.)[4:8])
-ld$ProsperRating..Alpha. <- ordered(ld$ProsperRating..Alpha., levels = ProsperRating_ord_lvl)
-
-ggplot(data = ld
-       ,aes(x = ProsperRating..Alpha.)) +
-  geom_histogram(color = I('black')
-                 ,fill = I('#099DD9')
-                 ,stat='count')
-
-# ... Associated effective yield of investment in percent ...
-ggplot(data = ld
-       ,aes(x = EstimatedEffectiveYield)) +
-  geom_histogram(color = I('black')
-                 ,fill = I('#ffc04d')
-                 ,bins=50) +
-  scale_x_continuous(breaks = seq(-.2,.32,.04), labels = seq(-.2,.32,.04)*100) +
-  coord_trans(y='sqrt')
-
-summary(ld$EstimatedEffectiveYield)
-
-# ... Associated estimated loss ...
-ggplot(data = ld
-       ,aes(x = EstimatedLoss)) +
-  geom_histogram(color = I('black')
-                 ,fill = I('#ffc04d')
-                 ,bins = 75) +
-  scale_x_continuous(breaks = seq(.0045,.3661,.05), labels = seq(.0048,.3661,.05)*100) +
-  scale_y_continuous(breaks = seq(0,15000,512)*2) +
-  coord_trans(y='sqrt')
-
-summary(ld$EstimatedLoss)
-
-# ... Borrower rate distribution ...
-ggplot(data = ld
-       ,aes(x = BorrowerRate)) +
-  geom_histogram(color = I('black')
-                 ,fill = I('#ffc04d')
-                 ,bins=100) +
-  scale_x_continuous(breaks = seq(.0,.37,.1), labels = seq(.0,.37,.1)*100)
-
-summary(ld$BorrowerRate)
+skim(ld)
 ```
 
 ```{r}
-# OBSERVE THE ESTIMATED EFFECTIVE YIELD BY SUBSETING TO HIGHER RISK INVESTMENTS AND LOWER RISK
-lower_risk <- ggplot(data = subset(ld, ProsperRating..Alpha. <= 'C'),
-       aes(x = EstimatedEffectiveYield)) +
-  ggtitle('Lower Risk Investments (AA - C)') +
-  xlab("Estimated Effective Yield (%)") +
-  geom_histogram(color = I('black')
-                 ,fill = I('#ffc04d')
-                 ,bins=20) +
-  scale_x_continuous(breaks = seq(-.2,.32,.05), labels = seq(-.2,.32,.05)*100) +
-  coord_trans(y='sqrt')
+summary(ld$CurrentDelinquencies)
 
-higher_risk <- ggplot(data = subset(ld, ProsperRating..Alpha. > 'C'),
-       aes(x = EstimatedEffectiveYield)) +
-  ggtitle('Higher Risk Investments (D - HR)') +
-  xlab("Estimated Effective Yield (%)") +
+ggplot(data=ld,
+       aes(x=CurrentDelinquencies)) +
   geom_histogram(color = I('black')
-                 ,fill = I('#ffc04d')
-                 ,bins=20) +
-  scale_x_continuous(breaks = seq(-.2,.32,.05), labels = seq(-.2,.32,.05)*100) +
-  coord_trans(y='sqrt')
-
-grid.arrange(lower_risk, higher_risk, nrow=2)
+                 ,fill = I('#ffc04d')) +
+  coord_trans(y='sqrt') 
 ```
 
 ```{r}
-ggplot(data = ld,
-       aes(x = ProsperScore)) +
+summary(ld$StatedMonthlyIncome)
+
+ggplot(data=ld,
+       aes(x=StatedMonthlyIncome)) +
   geom_histogram(color = I('black')
-                 ,fill = I('#099DD9')
-                 ,bins = 11) +
-  scale_x_continuous(breaks = c(1:11))
-
-summary(ld$ProsperScore)
+                 ,fill = I('#ffc04d')
+                 ,bins = 100) +
+  scale_x_log10() +
+  coord_trans(y='sqrt')
 ```
-
-
-```{r}
-library(psych)
-?describe(ld)
-```
+USE FACET WRAP ON ESTIMATED RETURN WITH PROSPER RATING

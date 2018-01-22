@@ -55,8 +55,7 @@ set.seed(2)
 columns_list <- c('LoanStatus'
                   ,'LoanOriginalAmount'
                   ,'BorrowerRate'
-                  ,'EstimatedEffectiveYield'
-                  ,'EstimatedLoss'
+                  ,'EstimatedReturn'
                   ,'ProsperRating..Alpha.'
                   ,'ProsperScore'
                   ,'CurrentDelinquencies'
@@ -153,13 +152,14 @@ in this interval, something around $4,000, $10,000 and $15,000.
 
 ---
 
-#### Analysing how the Listings are distributed across the **Risk Ratings** and their rates.
+#### Analysing how the Listings are distributed across the **Risk Ratings**
 ```{r echo=FALSE, warning=FALSE, message=FALSE, fig.height=3, listings}
 ggplot(data = ld
        ,aes(x = ProsperRating..Alpha.)) +
   geom_histogram(color = I('black')
                  ,fill = I('#099DD9')
-                 ,stat='count')
+                 ,stat='count') +
+  theme(axis.title.x=element_blank())
 
 table(ld$ProsperRating..Alpha.)
 ```
@@ -175,97 +175,113 @@ bounds present a small frequency, and we have higher frequencies in the middle.
 
 Besides that, we see that we have **131** registries without a defined Rating
 (i.e. blank).
+
 ---
 
-```{r}
-# ... Associated effective yield of investment in percent ...
-ggplot(data = ld
-       ,aes(x = EstimatedEffectiveYield)) +
-  geom_histogram(color = I('black')
-                 ,fill = I('#ffc04d')
-                 ,bins=50) +
-  scale_x_continuous(breaks = seq(-.2,.32,.04), labels = seq(-.2,.32,.04)*100) +
-  coord_trans(y='sqrt')
-
-summary(ld$EstimatedEffectiveYield)
-
-# ... Associated estimated loss ...
-ggplot(data = ld
-       ,aes(x = EstimatedLoss)) +
-  geom_histogram(color = I('black')
-                 ,fill = I('#ffc04d')
-                 ,bins = 75) +
-  scale_x_continuous(breaks = seq(.0045,.3661,.05), labels = seq(.0048,.3661,.05)*100) +
-  scale_y_continuous(breaks = seq(0,15000,512)*2) +
-  coord_trans(y='sqrt')
-
-summary(ld$EstimatedLoss)
-
+```{r echo=FALSE, warning=FALSE, message=FALSE}
 # ... Borrower rate distribution ...
 ggplot(data = ld
        ,aes(x = BorrowerRate)) +
   geom_histogram(color = I('black')
                  ,fill = I('#ffc04d')
                  ,bins=100) +
-  scale_x_continuous(breaks = seq(.0,.37,.1), labels = seq(.0,.37,.1)*100)
+  scale_x_continuous(breaks = seq(.0,.37,.1), labels = seq(.0,.37,.1)*100) +
+  xlab("Borrower Rate (%)")
 
 summary(ld$BorrowerRate)
 ```
 
+#### Analysing how the **Estimated Return** is distributed
+```{r}
+ggplot(data = ld
+       ,aes(x = EstimatedReturn)) +
+  geom_histogram(color = I('black')
+                 ,fill = I('#ffc04d')
+                 ,bins=150) +
+  scale_x_continuous(breaks = seq(-.2,.30,.04), labels = seq(-.2,.30,.04)*100) +
+  coord_trans(y='sqrt') +
+  xlab("Estimated Return (%)")
+
+summary(ld$EstimatedReturn)
+```
+
 ---
 
-If we look to the **Estimated Effective Yield** distribution according to the 
+The **Estimated Return** is Bimodal, and it ranges from -18.3%
+to 28.4%.
+
+This scenario is probably related to the risk associated.
+
+If we look to the **Estimated Return** distribution according to the 
 **Risk** associated, what we will find?
 
 ---
 
 ```{r echo=FALSE, warning=FALSE, message=FALSE, yield_by_risk}
-# OBSERVE THE ESTIMATED EFFECTIVE YIELD BY SUBSETING TO HIGHER RISK INVESTMENTS AND LOWER RISK
-lower_risk <- ggplot(data = subset(ld, ProsperRating..Alpha. <= 'C'),
-       aes(x = EstimatedEffectiveYield)) +
+lower_levels <- levels(ld$ProsperRating..Alpha.)[0:5]
+
+lower_risk <- ggplot(data = subset(ld, ProsperRating..Alpha. %in% lower_levels),
+       aes(x = EstimatedReturn)) +
   ggtitle('Lower Risk Investments (AA - C)') +
-  xlab("Estimated Effective Yield (%)") +
+  xlab("Estimated Return (%)") +
   geom_histogram(color = I('black')
                  ,fill = I('#ffc04d')
                  ,bins=20) +
-  scale_x_continuous(breaks = seq(-.2,.32,.05), labels = seq(-.2,.32,.05)*100) +
+  scale_x_continuous(breaks = seq(-.2,.30,.04), labels = seq(-.2,.30,.04)*100) +
   coord_trans(y='sqrt')
 
-higher_risk <- ggplot(data = subset(ld, ProsperRating..Alpha. > 'C'),
+higher_levels <- levels(ld$ProsperRating..Alpha.)[6:8]
+
+higher_risk <- ggplot(data = subset(ld, ProsperRating..Alpha. %in% higher_levels),
        aes(x = EstimatedEffectiveYield)) +
   ggtitle('Higher Risk Investments (D - HR)') +
-  xlab("Estimated Effective Yield (%)") +
+  xlab("Estimated Return (%)") +
   geom_histogram(color = I('black')
                  ,fill = I('#ffc04d')
                  ,bins=20) +
-  scale_x_continuous(breaks = seq(-.2,.32,.05), labels = seq(-.2,.32,.05)*100) +
+  scale_x_continuous(breaks = seq(-.2,.30,.04), labels = seq(-.2,.30,.04)*100) +
   coord_trans(y='sqrt')
 
 grid.arrange(lower_risk, higher_risk, nrow=2)
 ```
 
+---
+
+As we can see, in lower levels, a **Estimated Return** between 4% and 12% are 
+more usual, and we have a Normal Distribution of the data.
+
+On the other hand, for higher levels, a **Estimated Return** between 17% and 
+30% occurs more frequently, and here we can see a Left Skewed Distribution.
+
+However, the **Higher Risk** investments presents **negative** returns, whereas
+the **Lower Risk** almost do not present this kind of situation.
+
+Later on, we can explore this Estimated Return behaviour a bit deeper.
+
+---
+
+#### Analysing how the **Prosper Score** is distributed
 ```{r echo=FALSE, warning=FALSE, message=FALSE, }
 ggplot(data = ld,
        aes(x = ProsperScore)) +
   geom_histogram(color = I('black')
                  ,fill = I('#099DD9')
                  ,bins = 11) +
-  scale_x_continuous(breaks = c(1:11))
+  scale_x_continuous(breaks = c(1:11)) +
+  theme(axis.title.x=element_blank())
 
-summary(ld$ProsperScore)
+table(ld$ProsperScore)
 ```
 
+---
 
-```{r}
-library(psych)
-describe(ld)
-```
+The **Prosper Score** assess borrower's profile to provide another tool to the
+investors when selecting a listing.
 
-> **Tip**: Make sure that you leave a blank line between the start / end of
-each code block and the end / start of your Markdown text so that it is
-formatted nicely in the knitted text. Note as well that text on consecutive
-lines is treated as a single space. Make sure you have a blank line between
-your paragraphs so that they too are formatted for easy readability.
+In this case, **1** represents the worst score and consequently has a higher
+risk associated to it, and **11** represents the best score.
+
+---
 
 ## Univariate Analysis
 
@@ -273,12 +289,12 @@ your paragraphs so that they too are formatted for easy readability.
 reflect on and summarize what you've found. Use the questions below to help you
 gather your observations and add your own if you have other thoughts!
 
-### What is the structure of your dataset?
+### What is the structure of your dataset? ok
 
-### What is/are the main feature(s) of interest in your dataset?
+### What is/are the main feature(s) of interest in your dataset? ok
 
 ### What other features in the dataset do you think will help support your \
-investigation into your feature(s) of interest?
+investigation into your feature(s) of interest? ok
 
 ### Did you create any new variables from existing variables in the dataset?
 
