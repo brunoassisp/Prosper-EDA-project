@@ -36,6 +36,7 @@ str(loanData)
 ```
 
 Since we have more than 80 variables, for this first moment, I want to select variables that can be related somehow and reduce the number of analysed variables.
+
 To aid me over this selection process, I am making use of the *ggpairs* function.
 
 ```{r echo=FALSE, warning=FALSE, message=FALSE, fig.width=14, fig.height=14, correlation_matrix}
@@ -178,21 +179,8 @@ Besides that, we see that we have **131** registries without a defined Rating
 
 ---
 
-```{r echo=FALSE, warning=FALSE, message=FALSE}
-# ... Borrower rate distribution ...
-ggplot(data = ld
-       ,aes(x = BorrowerRate)) +
-  geom_histogram(color = I('black')
-                 ,fill = I('#ffc04d')
-                 ,bins=100) +
-  scale_x_continuous(breaks = seq(.0,.37,.1), labels = seq(.0,.37,.1)*100) +
-  xlab("Borrower Rate (%)")
-
-summary(ld$BorrowerRate)
-```
-
 #### Analysing how the **Estimated Return** is distributed
-```{r}
+```{r echo=FALSE, warning=FALSE, message=FALSE}
 ggplot(data = ld
        ,aes(x = EstimatedReturn)) +
   geom_histogram(color = I('black')
@@ -233,7 +221,7 @@ lower_risk <- ggplot(data = subset(ld, ProsperRating..Alpha. %in% lower_levels),
 higher_levels <- levels(ld$ProsperRating..Alpha.)[6:8]
 
 higher_risk <- ggplot(data = subset(ld, ProsperRating..Alpha. %in% higher_levels),
-       aes(x = EstimatedEffectiveYield)) +
+       aes(x = EstimatedReturn)) +
   ggtitle('Higher Risk Investments (D - HR)') +
   xlab("Estimated Return (%)") +
   geom_histogram(color = I('black')
@@ -260,6 +248,31 @@ Later on, we can explore this Estimated Return behaviour a bit deeper.
 
 ---
 
+#### Borrower rate distribution
+```{r echo=FALSE, warning=FALSE, message=FALSE}
+ggplot(data = ld
+       ,aes(x = BorrowerRate)) +
+  geom_histogram(color = I('black')
+                 ,fill = I('#ffc04d')
+                 ,bins=100) +
+  scale_x_continuous(breaks = seq(.0,.37,.02), labels = seq(.0,.37,.02)*100) +
+  xlab("Borrower Rate (%)")
+
+summary(ld$BorrowerRate)
+```
+
+---
+
+The Borrower's Rate range from 4% to 36% with a mean of 19.6%.
+
+The rate of something close to 32% is the most common one. It is interesting
+since it is a pretty high interest rate. 
+
+One thing that comes to my mind is how is this related to the risk? Does do
+people who offer higher rates usually presents a higher risk?
+
+---
+
 #### Analysing how the **Prosper Score** is distributed
 ```{r echo=FALSE, warning=FALSE, message=FALSE, }
 ggplot(data = ld,
@@ -282,6 +295,44 @@ In this case, **1** represents the worst score and consequently has a higher
 risk associated to it, and **11** represents the best score.
 
 ---
+
+#### Monthly Income of Borrowers
+```{r echo=FALSE, warning=FALSE, message=FALSE,}
+income <- ggplot(data=ld,
+       aes(x=StatedMonthlyIncome)) +
+  geom_histogram(color = I('black')
+                 ,fill = I('#ffc04d')
+                 ,bins = 100) +
+  coord_trans(y='sqrt') +
+  xlab("Monthly Income")
+
+income_log10 <- ggplot(data=ld,
+       aes(x=StatedMonthlyIncome)) +
+  geom_histogram(color = I('black')
+                 ,fill = I('#ffc04d')
+                 ,bins = 100) +
+  scale_x_log10() +
+  coord_trans(y='sqrt') +
+  xlab("Monthly Income (log10)")
+
+grid.arrange(income, income_log10, nrow=2)
+
+summary(ld$StatedMonthlyIncome)
+```
+
+---
+
+---
+
+#### Current Delinquencies
+
+Instead of caring about how many delinquencies a borrower had, I will create a
+variable that tells us whether a borrower has been delinquent.
+
+```{r warning=FALSE, message=FALSE,}
+ld$HasBeenDelinquent <- ifelse(ld$CurrentDelinquencies > 0, 1, 0)
+```
+
 
 ## Univariate Analysis
 

@@ -91,7 +91,13 @@ ggplot(data=ld,
        aes(x=CurrentDelinquencies)) +
   geom_histogram(color = I('black')
                  ,fill = I('#ffc04d')) +
-  coord_trans(y='sqrt') 
+  coord_trans(y='sqrt')
+
+table(ld$CurrentDelinquencies)
+
+ld$HasBeenDelinquent <- ifelse(ld$CurrentDelinquencies > 0, 1, 0)
+
+ld$HasBeenDelinquent <- NULL
 ```
 
 ```{r}
@@ -102,7 +108,35 @@ ggplot(data=ld,
   geom_histogram(color = I('black')
                  ,fill = I('#ffc04d')
                  ,bins = 100) +
+  coord_trans(y='sqrt')
+
+ggplot(data=ld,
+       aes(x=StatedMonthlyIncome)) +
+  geom_histogram(color = I('black')
+                 ,fill = I('#ffc04d')
+                 ,bins = 100) +
   scale_x_log10() +
   coord_trans(y='sqrt')
 ```
+
+```{r}
+summary(ld$Recommendations)
+
+ggplot(data=ld,
+       aes(x=Recommendations)) +
+  geom_histogram() +
+  coord_trans(y='sqrt')
+```
+
+```{r}
+summary(ld$InvestmentFromFriendsCount)
+
+ggplot(data=ld,
+       aes(x=InvestmentFromFriendsCount)) +
+  geom_histogram() +
+  coord_trans(y='sqrt')
+
+table(ld$InvestmentFromFriendsCount)
+```
+
 USE FACET WRAP ON ESTIMATED RETURN WITH PROSPER RATING
