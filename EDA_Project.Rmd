@@ -372,6 +372,7 @@ recom <- ggplot(data=ld,
 
 '« Recommendations Table »'
 table(ld$Recommendations)
+quantile(ld$Recommendations, .98)
 
 invest <- ggplot(data=ld,
        aes(x=InvestmentFromFriendsCount)) +
@@ -380,34 +381,96 @@ invest <- ggplot(data=ld,
 
 '« Investment From Friends Count Table »'
 table(ld$InvestmentFromFriendsCount)
+quantile(ld$InvestmentFromFriendsCount, .99)
 
 grid.arrange(recom, invest, ncol=2)
 ```
 
+---
 
-## Univariate Analysis
+If we take a look at these two variables, we can see that the number of
+borrowers that have some occurence associated is too low.
 
-> **Tip**: Now that you've completed your univariate explorations, it's time to
-reflect on and summarize what you've found. Use the questions below to help you
-gather your observations and add your own if you have other thoughts!
+For **Recommendations**, 98% of the data are composed by 0's, and
+for **InvestmentFromFriendsCount**, 99% of the data are composed by 0's.
 
-### What is the structure of your dataset? ok
+For this reason, these two variables won't be considered from now on.
 
-### What is/are the main feature(s) of interest in your dataset? ok
-
-### What other features in the dataset do you think will help support your \
-investigation into your feature(s) of interest? ok
-
-### Did you create any new variables from existing variables in the dataset? ok
-
-### Of the features you investigated, were there any unusual distributions? \
-Did you perform any operations on the data to tidy, adjust, or change the form \
-of the data? If so, why did you do this?
-
+---
 
 ## Bivariate Plots Section
 
-UNDERSTAND HOW THE LOAN AMOUNT IS RELATED TO THE RISK
+Now that we have some views over the selected variables we can try to understand
+how these data is related to each other.
+
+#### Loan Amount x Risk
+```{r echo=FALSE, warning=FALSE, message=FALSE,fig.height=10}
+overplot <- ggplot(data=ld,
+       aes(x=ProsperRating..Alpha., y=LoanOriginalAmount)) +
+  geom_point() +
+  xlab("") +
+  ylab("Loan Amount")
+
+better_plot <- ggplot(data=ld,
+       aes(x=ProsperRating..Alpha., y=LoanOriginalAmount, group=1)) +
+  geom_point(alpha=1/100) +
+  geom_line(stat='summary', fun.y=mean, linetype = 1
+            ,aes(colour='Mean'), size=1) +
+  geom_line(stat='summary', fun.y=median, linetype = 2
+            ,aes(colour='Median'), size=1) +
+  scale_color_manual(name='',values=c('#0000ff','#099dd9')) +
+  xlab("") +
+  ylab("Loan Amount") +
+  theme(legend.position="bottom")
+
+grid.arrange(overplot, better_plot, nrow=2)
+
+ld.loan_by_risk <- ld %>%
+  group_by(ProsperRating..Alpha.) %>%
+  summarise(mean_loan_amount = mean(LoanOriginalAmount)
+            ,median_loan_amount = median(LoanOriginalAmount)
+            ,n=n())
+
+colnames(ld.loan_by_risk)[1] <- 'Risk Rating'
+colnames(ld.loan_by_risk)[2] <- 'Mean Loan Amount'
+colnames(ld.loan_by_risk)[3] <- 'Median Loan Amount'
+
+knitr::kable(ld.loan_by_risk)
+```
+
+---
+
+For our first bivariate plot we have the **Loan Amount** and the **Risk Rating**
+variables.
+
+The first plot could give us a sensation that most of the high loans were 
+related to lower risk ratings, but if we try to see how these points were 
+concentrated we will see that things change a little bit.
+
+Taking the second plot as base, we can see that the diffence of loan amount
+among the ratings exists and it grows as the risk raises. However, this is not
+as significant as it seemed in the first plot.
+
+Let's make this visualization even better.
+
+---
+
+```{r echo=FALSE, warning=FALSE, message=FALSE,}
+ggplot(data=ld,
+       aes(x=ProsperRating..Alpha., y=LoanOriginalAmount)) +
+  geom_boxplot(fill='#e3f6fe', color="#044b69") +
+  xlab('') +
+  ylab('Loan Amount')
+```
+
+---
+
+Now it is easier to understand how the **Loans Amount** vary among the 
+**Risk Ratings**.
+
+As the risk gets higher the loan amount decreases.
+
+---
 
 > **Tip**: Based on what you saw in the univariate plots, what relationships
 between variables might be interesting to look at in this section? Don't limit

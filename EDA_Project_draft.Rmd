@@ -155,5 +155,28 @@ ggplot(data=ld,
   xlab("Monthly Income (log10)")
 ```
 
+```{r}
+log10(ld$StatedMonthlyIncome)
+```
+
+
+## Univariate Analysis
+
+> **Tip**: Now that you've completed your univariate explorations, it's time to
+reflect on and summarize what you've found. Use the questions below to help you
+gather your observations and add your own if you have other thoughts!
+
+### What is the structure of your dataset? ok
+
+### What is/are the main feature(s) of interest in your dataset? ok
+
+### What other features in the dataset do you think will help support your \
+investigation into your feature(s) of interest? ok
+
+### Did you create any new variables from existing variables in the dataset? ok
+
+### Of the features you investigated, were there any unusual distributions? \
+Did you perform any operations on the data to tidy, adjust, or change the form \
+of the data? If so, why did you do this?
 
 USE FACET WRAP ON ESTIMATED RETURN WITH PROSPER RATING
