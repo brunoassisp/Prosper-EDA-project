@@ -8,11 +8,17 @@ output:
 
 ---
 
-In this project, I am going to present an **Exploratory Data Analysis** over a dataset that contains informations about **Loans**. This dataset belongs to [Prosper](https://www.prosper.com/) and it contains **_113,937 loans_** with **_81 variables_** on each loan.
+In this project, I am going to present an **Exploratory Data Analysis** over a 
+dataset that contains informations about **Loans**. This dataset belongs to [Prosper](https://www.prosper.com/) and it contains **_113,937 loans_** with 
+**_81 variables_** on each loan.
 
-The **Loan Data from Prosper** presents a lot of informations about the profile of a borrower that can be found by analysing the *Listings*. By analysing this dataset, I intend to provide useful information that enables a investor to safely select the best option of loan to apply.
+The **Loan Data from Prosper** presents a lot of informations about the profile 
+of a borrower that can be found by analysing the *Listings*. By analysing this 
+dataset, I intend to provide useful information that enables a investor to 
+safely select the best loan option to apply.
 
-A data dictionary was provided to aid through the whole process, this can be found in the **appendix** by the end of this document.
+A data dictionary was provided to aid through the whole process, this can be 
+found in the **appendix** by the end of this document.
 
 Let's begin!
 
@@ -24,6 +30,7 @@ library(knitr)
 library(dplyr)
 library(GGally)
 library(gridExtra)
+library(scales)
 ```
 
 ## Understanding the data
@@ -35,9 +42,12 @@ loanData <- read.csv('../prosperLoanData.csv')
 str(loanData)
 ```
 
-Since we have more than 80 variables, for this first moment, I want to select variables that can be related somehow and reduce the number of analysed variables.
+Since we have more than 80 variables, for this first moment, I want to select 
+variables that can be related somehow and reduce the number of analysed 
+variables.
 
-To aid me over this selection process, I am making use of the *ggpairs* function.
+To aid me over this selection process, I am making use of the *ggpairs* 
+function.
 
 ```{r echo=FALSE, warning=FALSE, message=FALSE, fig.width=14, fig.height=14, correlation_matrix}
 # Reordering factor variables
@@ -72,7 +82,12 @@ loanData_samp <- loanData[sample(1:nrow(loanData), 10000), columns_list]
 #         ,axisLabels = 'internal')
 ```
 
-This plot brings a nice overview over the relationships among the selected variables. By providing scatterplots, histograms, box plots and correlation coeficients, this matrix starts to give some sense over the data behavior. For instance, if we take the variables **_BorrowerRate_** and **_EstimatedEffectiveYield_**, we can see that they are positively correlated by looking to the _coeficient_ and to the _scatterplot_.
+This plot brings a nice overview over the relationships among the selected 
+variables. By providing scatterplots, histograms, box plots and correlation 
+coeficients, this matrix starts to give some sense over the data behavior. 
+For instance, if we take the variables **_BorrowerRate_** and  
+**_EstimatedReturn_**, we can see that they are positively 
+correlated by looking to the _coeficient_ and to the _scatterplot_.
 
 DESCRIBE MORE ABOUT THE CORRELATION MATRIX
 
@@ -303,6 +318,7 @@ income <- ggplot(data=ld,
   geom_histogram(color = I('black')
                  ,fill = I('#ffc04d')
                  ,bins = 100) +
+  scale_x_continuous(breaks=seq(0,1750010, 175000)) +
   coord_trans(y='sqrt') +
   xlab("Monthly Income")
 
@@ -311,16 +327,28 @@ income_log10 <- ggplot(data=ld,
   geom_histogram(color = I('black')
                  ,fill = I('#ffc04d')
                  ,bins = 100) +
-  scale_x_log10() +
+  scale_x_continuous(trans=log10_trans(),
+                     breaks=trans_breaks('log10', function(x) 10 ^ x),
+                     labels=trans_format("log10", math_format(10^.x))) +
   coord_trans(y='sqrt') +
   xlab("Monthly Income (log10)")
 
 grid.arrange(income, income_log10, nrow=2)
 
 summary(ld$StatedMonthlyIncome)
+
+quantile(ld$StatedMonthlyIncome,0.95)
 ```
 
 ---
+
+With the information above, we can see that most of the incomes (**95% of them**)
+are below **$12,500**.
+
+The interesting thing to notice here is that the values are between **$0 and 
+$1,750,003**. 
+
+So we definetly have some outliers in our dataset.
 
 ---
 
@@ -331,6 +359,29 @@ variable that tells us whether a borrower has been delinquent.
 
 ```{r warning=FALSE, message=FALSE,}
 ld$HasBeenDelinquent <- ifelse(ld$CurrentDelinquencies > 0, 1, 0)
+```
+
+---
+
+#### Recommendations & Investment From Friends Count
+```{r echo=FALSE, warning=FALSE, message=FALSE, fig.height=3,}
+recom <- ggplot(data=ld,
+       aes(x=Recommendations)) +
+  geom_histogram() +
+  coord_trans(y='sqrt')
+
+'« Recommendations Table »'
+table(ld$Recommendations)
+
+invest <- ggplot(data=ld,
+       aes(x=InvestmentFromFriendsCount)) +
+  geom_histogram() +
+  coord_trans(y='sqrt')
+
+'« Investment From Friends Count Table »'
+table(ld$InvestmentFromFriendsCount)
+
+grid.arrange(recom, invest, ncol=2)
 ```
 
 
@@ -347,7 +398,7 @@ gather your observations and add your own if you have other thoughts!
 ### What other features in the dataset do you think will help support your \
 investigation into your feature(s) of interest? ok
 
-### Did you create any new variables from existing variables in the dataset?
+### Did you create any new variables from existing variables in the dataset? ok
 
 ### Of the features you investigated, were there any unusual distributions? \
 Did you perform any operations on the data to tidy, adjust, or change the form \
