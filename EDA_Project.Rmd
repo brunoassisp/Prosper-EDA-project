@@ -105,6 +105,8 @@ ld <- subset(loanData
        ,select = columns_list
        )
 
+ld$ProsperScore <- factor(ld$ProsperScore)
+
 str(ld)
 ```
 
@@ -294,9 +296,9 @@ ggplot(data = ld,
        aes(x = ProsperScore)) +
   geom_histogram(color = I('black')
                  ,fill = I('#099DD9')
-                 ,bins = 11) +
-  scale_x_continuous(breaks = c(1:11)) +
-  theme(axis.title.x=element_blank())
+                 ,bins = 11
+                 ,stat='count') +
+  xlab('')
 
 table(ld$ProsperScore)
 ```
@@ -472,15 +474,59 @@ As the risk gets higher the loan amount decreases.
 
 ---
 
+#### Borrower Rate x Risk Rating
+```{r echo=FALSE, warning=FALSE, message=FALSE,}
+main_plt <- ggplot(data=ld
+       ,aes(x=EstimatedReturn, y=BorrowerRate)) +
+  geom_point(alpha=1/100, color='darkblue') +
+  xlab('')
+
+sec_plt <- ggplot(data=ld
+       ,aes(x=EstimatedReturn, y=BorrowerRate)) +
+  geom_point(alpha=1/100) +
+  scale_x_continuous(breaks=seq(0,.2,.05), limits=c(0,.2)) +
+  facet_wrap(~HasBeenDelinquent)
+
+grid.arrange(main_plt, sec_plt, nrow=2)
+
+cor.test(ld$EstimatedReturn, ld$BorrowerRate)
+```
+
+---
+
+Here we can see that these two variables are **positively correlated**.
+
+I tried to verify if the *Delinquents* could influence some how in the data, but
+the results showed me that Delinquents (1) and Non-delinquents (0) are
+distributed in the same way.
+
+---
+
+#### Monthly Income x Prosper Score
+```{r echo=FALSE, warning=FALSE, message=FALSE,}
+ggplot(data=ld
+       ,aes(x=ProsperScore, y=StatedMonthlyIncome)) +
+  geom_boxplot(fill='#e3f6fe', color="#044b69") +
+  ylim(0, quantile(ld$StatedMonthlyIncome, .99)) +
+  ylab('Monthly Income')
+```
+
+---
+
+It is possible to notice that as the **Prosper Score** raises the **Income**
+tends to grow as well.
+
+Therefore, perhaps borrowers with a higher monthly income tend to be more
+reliable and it makes some sense since those people has a higher chance of 
+being able paying their debts.
+
+---
+
 > **Tip**: Based on what you saw in the univariate plots, what relationships
 between variables might be interesting to look at in this section? Don't limit
 yourself to relationships between a main output feature and one of the
 supporting variables. Try to look at relationships between supporting variables
 as well.
-
-```{r echo=FALSE, Bivariate_Plots}
-
-```
 
 ## Bivariate Analysis
 
