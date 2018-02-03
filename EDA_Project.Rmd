@@ -737,6 +737,17 @@ I could try applying [PCA](https://www.r-bloggers.com/computing-and-visualizing-
 
 ------
 
+## References
+
+* Udacity - https://classroom.udacity.com/
+* R Markdown - http://rmarkdown.rstudio.com/authoring_basics.html
+* Prosper - https://www.prosper.com
+* Stackoverflow - https://stackoverflow.com/
+* ggplot2 - http://ggplot2.tidyverse.org
+* R Documentation - https://www.rdocumentation.org/
+
+------
+
 ## Appendix
 
 Variable | Description
