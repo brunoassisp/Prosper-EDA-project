@@ -78,8 +78,8 @@ columns_list <- c('LoanStatus'
 loanData_samp <- loanData[sample(1:nrow(loanData), 10000), columns_list]
 
 # Plotting the matrix
-# ggpairs(loanData_samp
-#         ,axisLabels = 'internal')
+ggpairs(loanData_samp
+        ,axisLabels = 'internal')
 ```
 
 This plot brings a nice overview over the relationships among the selected 
@@ -88,8 +88,6 @@ coeficients, this matrix starts to give some sense over the data behavior.
 For instance, if we take the variables **_BorrowerRate_** and  
 **_EstimatedReturn_**, we can see that they are positively 
 correlated by looking to the _coeficient_ and to the _scatterplot_.
-
-DESCRIBE MORE ABOUT THE CORRELATION MATRIX
 
 With that in mind, let's take a closer look over each of these variables.
 
@@ -255,8 +253,8 @@ grid.arrange(lower_risk, higher_risk, nrow=2)
 As we can see, in lower levels, a **Estimated Return** between 4% and 12% are 
 more usual, and we have a Normal Distribution of the data.
 
-On the other hand, for higher levels, a **Estimated Return** between 17% and 
-30% occurs more frequently, and here we can see a Left Skewed Distribution.
+On the other hand, for higher levels, a **Estimated Return** between 8% and 
+18% occurs more frequently, and here we can see a Left Skewed Distribution.
 
 However, the **Higher Risk** investments presents **negative** returns, whereas
 the **Lower Risk** almost do not present this kind of situation.
@@ -573,53 +571,120 @@ in the last section.
 
 Let's try it out.
 
-#### Estimated Return x Risk Rating x Monthly Income
+#### Monthly Income x Estimated Return colored by Risk Rating
 ```{r}
-
+ggplot(data=ld
+       ,aes(x=EstimatedReturn, y=(StatedMonthlyIncome+1)
+            ,color=ProsperRating..Alpha.)) +
+  geom_point() +
+  scale_y_continuous(limits=c(10, quantile(ld$StatedMonthlyIncome, .99))
+                     ,trans=log10_trans()) +
+  ylab('Monthly Income')
 ```
 
+---
 
-> **Tip**: Now it's time to put everything together. Based on what you found in
-the bivariate plots section, create a few multivariate plots to investigate
-more complex interactions between variables. Make sure that the plots that you
-create here are justified by the plots you explored in the previous section. If
-you plan on creating any mathematical models, this is the section where you
-will do that.
+In this first plot, I intended to verify if there was a relationship between 
+**Monthly Income** and **Estimated Return**, but there is not.
 
-```{r echo=FALSE, Multivariate_Plots}
+Also, there is not a clear relationship between **Monthly Income** and 
+**Risk Rating**.
 
+---
+
+#### Estimated Return x Borrower Rate colored by Risk Rating
+```{r}
+ggplot(data=subset(ld, ProsperRating..Alpha. != '')
+       ,aes(x=BorrowerRate, y=EstimatedReturn, color=ProsperRating..Alpha.)) +
+  geom_point(alpha=1/50, size=2) +
+  facet_wrap(~ProsperRating..Alpha.) +
+  theme(legend.position="none")
 ```
 
-## Multivariate Analysis
+---
 
-### Talk about some of the relationships you observed in this part of the \
-investigation. Were there features that strengthened each other in terms of \
-looking at your feature(s) of interest?
+This plot presents a more interesting view over our dataset.
 
-### Were there any interesting or surprising interactions between features?
+Here we can see that as the interest rate of the borrower raises, the Estimated
+Return and the Risk Rating also raises.
 
-### OPTIONAL: Did you create any models with your dataset? Discuss the \
-strengths and limitations of your model.
+---
 
-------
+#### Loan Amount x Estimated Return colored by Risk Rating
+```{r}
+ggplot(data=subset(ld, ProsperRating..Alpha. != ''),
+       aes(x=EstimatedReturn, y=LoanOriginalAmount
+           ,color=ProsperRating..Alpha.)) +
+  geom_point(alpha=1/100) +
+  scale_y_log10() +
+  facet_wrap(~ProsperRating..Alpha.) +
+  theme(legend.position="none") +
+  ylab('Loan Amount')
+```
+
+---
+
+The **Loan Amount** does not have any impact over the behaviour of the other
+two variables.
+
+---
+
+#### Estimated Return x ProsperScore colored by Risk Rating
+```{r}
+ggplot(data=subset(ld, ProsperRating..Alpha. != '')
+       ,aes(x=ProsperScore, y=EstimatedReturn, color=ProsperRating..Alpha.)) +
+  geom_point(alpha=1/50) +
+  facet_wrap(~ProsperRating..Alpha.) +
+  theme(legend.position="none")
+```
+
+---
+
+This plot provided interesting information since it showed a comparison between 
+the two Prosper's evaluators.
+
+At first, I thought they were going to present a similar behaviour to the 
+**Estimated Return** values. That is as the return raise, **Prosper Score**
+and **Risk Rating** would have a proportional increase in its risk.
+
+---
+
+```{r}
+ggplot(data=ld
+       ,aes(x=ProsperScore, y=EstimatedReturn)) +
+  geom_boxplot(fill='#e3f6fe', color="#044b69")
+```
+
+---
+
+As higher the risk is (closer to 1), the higher the **Estimated Return** gets.
+
+---
 
 ## Final Plots and Summary
 
-> **Tip**: You've done a lot of exploration and have built up an understanding
-of the structure of and relationships between the variables in your dataset.
-Here, you will select three plots from all of your previous exploration to
-present here as a summary of some of your most interesting findings. Make sure
-that you have refined your selected plots for good titling, axis labels (with
-units), and good aesthetic choices (e.g. color, transparency). After each plot,
-make sure you justify why you chose each plot by describing what it shows.
-
 ### Plot One
 ```{r echo=FALSE, Plot_One}
+ggplot(data = ld
+       ,aes(x = EstimatedReturn)) +
+  geom_histogram(color = I('black')
+                 ,fill = I('#ffc04d')
+                 ,bins=150) +
+  scale_x_continuous(breaks = seq(-.2,.30,.04), labels = seq(-.2,.30,.04)*100) +
+  coord_trans(y='sqrt') +
+  xlab("Estimated Return (%)")
 
+summary(ld$EstimatedReturn)
 ```
 
 ### Description One
+This first plots provides a view over the distribution of the 
+**Estimated Return** variable, as mentioned before it has **two peaks** and 
+their are related to the risk associated.
 
+Besides that, we can also see that some listings have a **negative returns**.
+
+We can also easily notice where the most common values lay.
 
 ### Plot Two
 ```{r echo=FALSE, Plot_Two}
