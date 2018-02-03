@@ -180,3 +180,31 @@ Did you perform any operations on the data to tidy, adjust, or change the form \
 of the data? If so, why did you do this?
 
 USE FACET WRAP ON ESTIMATED RETURN WITH PROSPER RATING
+
+```{r}
+ggplot(data=ld
+       ,aes(x=EstimatedReturn)) +
+  geom_histogram(bins=200) +
+  coord_trans(y='sqrt') +
+  facet_wrap(~ProsperRating..Alpha.)
+```
+
+> **Tip**: Based on what you saw in the univariate plots, what relationships
+between variables might be interesting to look at in this section? Don't limit
+yourself to relationships between a main output feature and one of the
+supporting variables. Try to look at relationships between supporting variables
+as well.
+
+## Bivariate Analysis
+
+> **Tip**: As before, summarize what you found in your bivariate explorations
+here. Use the questions below to guide your discussion.
+
+### Talk about some of the relationships you observed in this part of the \
+investigation. How did the feature(s) of interest vary with other features in \
+the dataset?
+
+### Did you observe any interesting relationships between the other features \
+(not the main feature(s) of interest)?
+
+### What was the strongest relationship you found?

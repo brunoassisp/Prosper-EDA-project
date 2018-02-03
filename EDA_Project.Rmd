@@ -522,28 +522,62 @@ being able paying their debts.
 
 ---
 
-> **Tip**: Based on what you saw in the univariate plots, what relationships
-between variables might be interesting to look at in this section? Don't limit
-yourself to relationships between a main output feature and one of the
-supporting variables. Try to look at relationships between supporting variables
-as well.
+#### Estimated Return x Risk Rating - For Chargedoffs
+```{r}
+ggplot(data=subset(ld, LoanStatus == 'Chargedoff')
+       ,aes(x=ProsperRating..Alpha., y=EstimatedReturn)) +
+  geom_point(alpha=1/5
+    ,position = position_jitter(h=0.1, w=0.3)) +
+  xlab('')
 
-## Bivariate Analysis
+with(subset(ld, LoanStatus == 'Chargedoff'), table(ProsperRating..Alpha.))
+```
 
-> **Tip**: As before, summarize what you found in your bivariate explorations
-here. Use the questions below to guide your discussion.
+---
 
-### Talk about some of the relationships you observed in this part of the \
-investigation. How did the feature(s) of interest vary with other features in \
-the dataset?
+The loans that has a *Chargedoff* status are highly concentrated for higher
+risk investments.
 
-### Did you observe any interesting relationships between the other features \
-(not the main feature(s) of interest)?
+Since I added some noise to the data to analyse how the points were 
+concentrated, the Estimated Return rate loses its meaning.
 
-### What was the strongest relationship you found?
+So let's create a box plot to see the correct behaviour of the Estimated Return
+when related to Risk Ratings, and this time considering all possible status.
 
+---
+
+```{r}
+ggplot(data=ld
+       ,aes(x=ProsperRating..Alpha., y=EstimatedReturn)) +
+  geom_boxplot(fill='#e3f6fe', color="#044b69") +
+  xlab('')
+```
+
+---
+
+This view is very interesting since it provide us a nice overview over the Risk 
+levels when it comes to the estimated yield.
+
+The levels from AA to C has a median return range of 5% to 10%, while the levels
+D to HR, something between 12% to 14%.
+
+Besides that, for this data history, **D and E** appear to present better 
+results when compared to the other levels. The IQR (Interquartile Range) of
+these two levels are more spread than the others and go from 10% to 15%.
 
 ## Multivariate Plots Section
+
+We can go deeper in the analysis and give more sense to our data if we look how
+other variables behave by adding then to one of the bivariate plots created
+in the last section.
+
+Let's try it out.
+
+#### Estimated Return x Risk Rating x Monthly Income
+```{r}
+
+```
+
 
 > **Tip**: Now it's time to put everything together. Based on what you found in
 the bivariate plots section, create a few multivariate plots to investigate
