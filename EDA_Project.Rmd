@@ -472,7 +472,7 @@ As the risk gets higher the loan amount decreases.
 
 ---
 
-#### Borrower Rate x Risk Rating
+#### Borrower Rate x Borrower Rate
 ```{r echo=FALSE, warning=FALSE, message=FALSE,}
 main_plt <- ggplot(data=ld
        ,aes(x=EstimatedReturn, y=BorrowerRate)) +
@@ -521,7 +521,7 @@ being able paying their debts.
 ---
 
 #### Estimated Return x Risk Rating - For Chargedoffs
-```{r}
+```{r echo=FALSE, warning=FALSE, message=FALSE,}
 ggplot(data=subset(ld, LoanStatus == 'Chargedoff')
        ,aes(x=ProsperRating..Alpha., y=EstimatedReturn)) +
   geom_point(alpha=1/5
@@ -544,7 +544,7 @@ when related to Risk Ratings, and this time considering all possible status.
 
 ---
 
-```{r}
+```{r echo=FALSE, warning=FALSE, message=FALSE,}
 ggplot(data=ld
        ,aes(x=ProsperRating..Alpha., y=EstimatedReturn)) +
   geom_boxplot(fill='#e3f6fe', color="#044b69") +
@@ -572,7 +572,7 @@ in the last section.
 Let's try it out.
 
 #### Monthly Income x Estimated Return colored by Risk Rating
-```{r}
+```{r echo=FALSE, warning=FALSE, message=FALSE,}
 ggplot(data=ld
        ,aes(x=EstimatedReturn, y=(StatedMonthlyIncome+1)
             ,color=ProsperRating..Alpha.)) +
@@ -593,7 +593,7 @@ Also, there is not a clear relationship between **Monthly Income** and
 ---
 
 #### Estimated Return x Borrower Rate colored by Risk Rating
-```{r}
+```{r echo=FALSE, warning=FALSE, message=FALSE,}
 ggplot(data=subset(ld, ProsperRating..Alpha. != '')
        ,aes(x=BorrowerRate, y=EstimatedReturn, color=ProsperRating..Alpha.)) +
   geom_point(alpha=1/50, size=2) +
@@ -611,7 +611,7 @@ Return and the Risk Rating also raises.
 ---
 
 #### Loan Amount x Estimated Return colored by Risk Rating
-```{r}
+```{r echo=FALSE, warning=FALSE, message=FALSE,}
 ggplot(data=subset(ld, ProsperRating..Alpha. != ''),
        aes(x=EstimatedReturn, y=LoanOriginalAmount
            ,color=ProsperRating..Alpha.)) +
@@ -630,7 +630,7 @@ two variables.
 ---
 
 #### Estimated Return x ProsperScore colored by Risk Rating
-```{r}
+```{r echo=FALSE, warning=FALSE, message=FALSE,}
 ggplot(data=subset(ld, ProsperRating..Alpha. != '')
        ,aes(x=ProsperScore, y=EstimatedReturn, color=ProsperRating..Alpha.)) +
   geom_point(alpha=1/50) +
@@ -688,30 +688,52 @@ We can also easily notice where the most common values lay.
 
 ### Plot Two
 ```{r echo=FALSE, Plot_Two}
-
+ggplot(data=subset(ld,ProsperRating..Alpha. != '')
+       ,aes(x=ProsperRating..Alpha., y=EstimatedReturn)) +
+  geom_boxplot(fill='#e3f6fe', color="#044b69") +
+  xlab('')
 ```
 
 ### Description Two
+Reiterating what I said before, this plot clarifies how these two variables are
+related to each other.
 
+From here, we can say that the levels **D and E** presents better results.
 
 ### Plot Three
 ```{r echo=FALSE, Plot_Three}
-
+ggplot(data=subset(ld, ProsperRating..Alpha. != '')
+       ,aes(x=ProsperScore, y=EstimatedReturn, color=ProsperRating..Alpha.)) +
+  geom_point(alpha=1/50) +
+  facet_wrap(~ProsperRating..Alpha.) +
+  theme(legend.position="none")
 ```
 
 ### Description Three
+Since this plots puts together the two Prosper's evaluators and the main
+feature, the **Estimated Return**, it gives information on how those two can be
+used together to achieve better results when investing in a listing.
 
 ------
 
 ## Reflection
 
-> **Tip**: Here's the final step! Reflect on the exploration you performed and
-the insights you found. What were some of the struggles that you went through?
-What went well? What was surprising? Make sure you include an insight into
-future work that could be done with the dataset.
+This data set presents a lot of informations with lots of variables what makes
+it difficult to comprehend what can provide nice results.
 
-> **Tip**: Don't forget to remove this, and the other **Tip** sections before
-saving your final work and knitting the final report!
+Selecting those variables is not easy. After studying about the dataset and 
+about **Prosper** things start to become a bit clearer, even so lacks expertise
+over the main subject to provide more valuable insights.
+
+However, it was possible to create some interesting plots that show that some
+features behave in an unexpected way. 
+
+After developing this analysis, I would probably be more confortable to invest
+in listings that has some risk associated because they would provide me better
+results and even so I would not lose money easily.
+
+Of course I could go further by applying more analysis over data. At first,
+I could try applying [PCA](https://www.r-bloggers.com/computing-and-visualizing-pca-in-r/) to aid me in the process of variables selection.
 
 ------
 
