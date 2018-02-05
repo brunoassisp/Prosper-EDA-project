@@ -56,8 +56,10 @@ LoanStatus_ord_lvl <- c(levels(loanData$LoanStatus)[1:6]
       ,'Past Due (>120 days)')
 loanData$LoanStatus <- ordered(loanData$LoanStatus, levels = LoanStatus_ord_lvl)
 
-ProsperRating_ord_lvl <- c('', 'AA', 'A', levels(loanData$ProsperRating..Alpha.)[4:8])
-loanData$ProsperRating..Alpha. <- ordered(loanData$ProsperRating..Alpha., levels = ProsperRating_ord_lvl)
+ProsperRating_ord_lvl <- c('','AA'
+                           ,'A',levels(loanData$ProsperRating..Alpha.)[4:8])
+loanData$ProsperRating..Alpha. <- ordered(loanData$ProsperRating..Alpha.
+                                          ,levels = ProsperRating_ord_lvl)
 
 # Enabling reproducible results.
 set.seed(2)
@@ -117,9 +119,11 @@ ggplot(data = ld
   geom_histogram(color = I('black')
                  ,fill = I('#099DD9')
                  ,stat='count') +
+  scale_y_continuous(trans=log10_trans(), breaks=c(10,1000,6000,15000,40000)) +
   theme_bw(base_size = 10) +
   theme(axis.text.x=element_text(angle=60,hjust=1),
-        axis.title.x=element_blank())
+        axis.title.x=element_blank()) +
+  ylab('count (log 10)')
 
 table(ld$LoanStatus)
 ```
@@ -146,7 +150,10 @@ plot1 <- ggplot(data = ld
   geom_histogram(color = I('black')
                  ,fill = I('#ffc04d')
                  ,binwidth = 1000) +
-  scale_x_continuous(breaks = seq(0,35000,2500))
+  scale_x_continuous(breaks = seq(0,35000,2500)) +
+  scale_y_continuous(trans=log2_trans()) +
+  xlab('Loan Amount') +
+  ylab('count (log 2)')
 
 plot2 <- ggplot(data = ld
        ,aes(x = LoanOriginalAmount)) +
@@ -154,7 +161,9 @@ plot2 <- ggplot(data = ld
                  ,fill = I('#ffc04d')
                  ,binwidth = .05) +
   scale_x_log10() +
-  xlab("LoanOriginalAmount (log10 scale)")
+  scale_y_continuous(trans=log2_trans()) +
+  xlab("Loan Amount (log10 scale)") +
+  ylab('count (log 2)')
 
 grid.arrange(plot1, plot2, nrow=2)
 
@@ -170,14 +179,14 @@ in this interval, something around $4,000, $10,000 and $15,000.
 
 #### Analysing how the Listings are distributed across the **Risk Ratings**
 ```{r echo=FALSE, warning=FALSE, message=FALSE, fig.height=3, listings}
-ggplot(data = ld
+ggplot(data = subset(ld, ProsperRating..Alpha. != '')
        ,aes(x = ProsperRating..Alpha.)) +
   geom_histogram(color = I('black')
                  ,fill = I('#099DD9')
                  ,stat='count') +
-  theme(axis.title.x=element_blank())
+  xlab('Risk Rating')
 
-table(ld$ProsperRating..Alpha.)
+table(ld$ProsperRating..Alpha.)[2:8]
 ```
 
 ---
@@ -225,25 +234,29 @@ lower_levels <- levels(ld$ProsperRating..Alpha.)[0:5]
 
 lower_risk <- ggplot(data = subset(ld, ProsperRating..Alpha. %in% lower_levels),
        aes(x = EstimatedReturn)) +
-  ggtitle('Lower Risk Investments (AA - C)') +
-  xlab("Estimated Return (%)") +
   geom_histogram(color = I('black')
                  ,fill = I('#ffc04d')
                  ,bins=20) +
   scale_x_continuous(breaks = seq(-.2,.30,.04), labels = seq(-.2,.30,.04)*100) +
-  coord_trans(y='sqrt')
+  scale_y_continuous(trans=log2_trans(), breaks=c(8,128,2048,16384)) +
+  xlab("Estimated Return (%)") +
+  ylab('count (log 2)') +
+  ggtitle('Lower Risk Investments (AA - C)')
 
 higher_levels <- levels(ld$ProsperRating..Alpha.)[6:8]
 
-higher_risk <- ggplot(data = subset(ld, ProsperRating..Alpha. %in% higher_levels),
-       aes(x = EstimatedReturn)) +
-  ggtitle('Higher Risk Investments (D - HR)') +
-  xlab("Estimated Return (%)") +
+higher_risk <- ggplot(
+    data = subset(ld, ProsperRating..Alpha. %in% higher_levels),
+    aes(x = EstimatedReturn)
+  ) +
   geom_histogram(color = I('black')
                  ,fill = I('#ffc04d')
                  ,bins=20) +
   scale_x_continuous(breaks = seq(-.2,.30,.04), labels = seq(-.2,.30,.04)*100) +
-  coord_trans(y='sqrt')
+  scale_y_continuous(trans=log2_trans(), breaks=c(8,128,2048,16384)) +
+  xlab("Estimated Return (%)") +
+  ylab('count (log 2)') +
+  ggtitle('Higher Risk Investments (D - HR)') 
 
 grid.arrange(lower_risk, higher_risk, nrow=2)
 ```
@@ -271,6 +284,7 @@ ggplot(data = ld
                  ,fill = I('#ffc04d')
                  ,bins=100) +
   scale_x_continuous(breaks = seq(.0,.37,.02), labels = seq(.0,.37,.02)*100) +
+  coord_trans(y='sqrt') +
   xlab("Borrower Rate (%)")
 
 summary(ld$BorrowerRate)
@@ -290,13 +304,13 @@ people who offer higher rates usually presents a higher risk?
 
 #### Analysing how the **Prosper Score** is distributed
 ```{r echo=FALSE, warning=FALSE, message=FALSE, }
-ggplot(data = ld,
+ggplot(data = subset(ld, !is.na(ProsperScore)),
        aes(x = ProsperScore)) +
   geom_histogram(color = I('black')
                  ,fill = I('#099DD9')
                  ,bins = 11
                  ,stat='count') +
-  xlab('')
+  xlab('Prosper Score')
 
 table(ld$ProsperScore)
 ```
@@ -314,24 +328,26 @@ risk associated to it, and **11** represents the best score.
 #### Monthly Income of Borrowers
 ```{r echo=FALSE, warning=FALSE, message=FALSE,}
 income <- ggplot(data=ld,
-       aes(x=StatedMonthlyIncome)) +
+       aes(x=StatedMonthlyIncome, y=..count..+1)) +
   geom_histogram(color = I('black')
                  ,fill = I('#ffc04d')
                  ,bins = 100) +
   scale_x_continuous(breaks=seq(0,1750010, 175000)) +
-  coord_trans(y='sqrt') +
-  xlab("Monthly Income")
+  scale_y_continuous(trans=log2_trans(), breaks=c(8,128,2048,32768)) +
+  xlab("Monthly Income") +
+  ylab("count (log 2)")
 
 income_log10 <- ggplot(data=ld,
-       aes(x=StatedMonthlyIncome)) +
+       aes(x=StatedMonthlyIncome+1, y=..count..+1)) +
   geom_histogram(color = I('black')
                  ,fill = I('#ffc04d')
                  ,bins = 100) +
   scale_x_continuous(trans=log10_trans(),
                      breaks=trans_breaks('log10', function(x) 10 ^ x),
                      labels=trans_format("log10", math_format(10^.x))) +
-  coord_trans(y='sqrt') +
-  xlab("Monthly Income (log10)")
+  scale_y_continuous(trans=log2_trans(), breaks=c(8,128,2048,8192)) +
+  xlab("Monthly Income (log10)") +
+  ylab("count (log 2)")
 
 grid.arrange(income, income_log10, nrow=2)
 
@@ -342,8 +358,8 @@ quantile(ld$StatedMonthlyIncome,0.95)
 
 ---
 
-With the information above, we can see that most of the incomes (**95% of them**)
-are below **$12,500**.
+With the information above, we can see that most of the incomes 
+(**95% of them**) are below **$12,500**.
 
 The interesting thing to notice here is that the values are between **$0 and 
 $1,750,003**. 
@@ -366,18 +382,23 @@ ld$HasBeenDelinquent <- ifelse(ld$CurrentDelinquencies > 0, 1, 0)
 #### Recommendations & Investment From Friends Count
 ```{r echo=FALSE, warning=FALSE, message=FALSE, fig.height=3,}
 recom <- ggplot(data=ld,
-       aes(x=Recommendations)) +
-  geom_histogram() +
-  coord_trans(y='sqrt')
+       aes(x=Recommendations, y=..count..+1)) +
+  geom_bar() +
+  scale_x_continuous(breaks=seq(0,20,2)) +
+  scale_y_continuous(trans=log10_trans()) + 
+  ylab('count (log 10)')
 
 '« Recommendations Table »'
 table(ld$Recommendations)
 quantile(ld$Recommendations, .98)
 
 invest <- ggplot(data=ld,
-       aes(x=InvestmentFromFriendsCount)) +
-  geom_histogram() +
-  coord_trans(y='sqrt')
+       aes(x=InvestmentFromFriendsCount, y=..count..+1)) +
+  geom_bar() +
+  scale_x_continuous(breaks=seq(0,9,1)) +
+  scale_y_continuous(trans=log10_trans()) +
+  xlab('Investment From Friends Count') + 
+  ylab('count (log 10)')
 
 '« Investment From Friends Count Table »'
 table(ld$InvestmentFromFriendsCount)
@@ -398,6 +419,28 @@ For this reason, these two variables won't be considered from now on.
 
 ---
 
+## Univariate Plots - Review
+
+In this section we had a dataset overview.
+
+We have **113,937** registers with **81** variables each.
+
+From those variables, some of them seem to be more important for the whole
+analysis such as **Risk Rating**, **Estimated Return** and **Prosper Score**.
+
+The other features such as **Borrower Rate**, **Monthly Income**, 
+**Loan Status** and **Current Delinquencies** maybe will provide interesting
+insights when analysed with other variables and will support our investigation.
+
+A new variable (*HasBeenDelinquent*) was created so we could have two groups in
+our dataset to be compared.
+
+Lastly but not least, one of the views that caught my attention was the 
+**Estimated Return** distribution that presents some peaks that would be 
+interesting to understand where they come from, what is causing them.
+
+Well, let's see what else we can extract from our dataset.
+
 ## Bivariate Plots Section
 
 Now that we have some views over the selected variables we can try to understand
@@ -405,21 +448,21 @@ how these data is related to each other.
 
 #### Loan Amount x Risk
 ```{r echo=FALSE, warning=FALSE, message=FALSE,fig.height=10}
-overplot <- ggplot(data=ld,
+overplot <- ggplot(data=subset(ld,ProsperRating..Alpha. != ''),
        aes(x=ProsperRating..Alpha., y=LoanOriginalAmount)) +
   geom_point() +
   xlab("") +
   ylab("Loan Amount")
 
-better_plot <- ggplot(data=ld,
+better_plot <- ggplot(data=subset(ld,ProsperRating..Alpha. != ''),
        aes(x=ProsperRating..Alpha., y=LoanOriginalAmount, group=1)) +
-  geom_point(alpha=1/100) +
+  geom_point(alpha=1/100, position=position_jitter(h=0,w=.3)) +
   geom_line(stat='summary', fun.y=mean, linetype = 1
             ,aes(colour='Mean'), size=1) +
   geom_line(stat='summary', fun.y=median, linetype = 2
             ,aes(colour='Median'), size=1) +
   scale_color_manual(name='',values=c('#0000ff','#099dd9')) +
-  xlab("") +
+  xlab("Risk Rating") +
   ylab("Loan Amount") +
   theme(legend.position="bottom")
 
@@ -456,10 +499,10 @@ Let's make this visualization even better.
 ---
 
 ```{r echo=FALSE, warning=FALSE, message=FALSE,}
-ggplot(data=ld,
+ggplot(data=subset(ld, ProsperRating..Alpha. != ''),
        aes(x=ProsperRating..Alpha., y=LoanOriginalAmount)) +
   geom_boxplot(fill='#e3f6fe', color="#044b69") +
-  xlab('') +
+  xlab('Risk Rating') +
   ylab('Loan Amount')
 ```
 
@@ -472,18 +515,25 @@ As the risk gets higher the loan amount decreases.
 
 ---
 
-#### Borrower Rate x Borrower Rate
+#### Borrower Rate x Estimated Return
 ```{r echo=FALSE, warning=FALSE, message=FALSE,}
 main_plt <- ggplot(data=ld
        ,aes(x=EstimatedReturn, y=BorrowerRate)) +
   geom_point(alpha=1/100, color='darkblue') +
-  xlab('')
+  scale_x_continuous(breaks = seq(-.2,.30,.04), labels = seq(-.2,.30,.04)*100) +
+  scale_y_continuous(breaks = seq(.0,.37,.04), labels = seq(.0,.37,.04)*100) +
+  xlab('') +
+  ylab('Borrower Rate (%)')
 
 sec_plt <- ggplot(data=ld
        ,aes(x=EstimatedReturn, y=BorrowerRate)) +
   geom_point(alpha=1/100) +
-  scale_x_continuous(breaks=seq(0,.2,.05), limits=c(0,.2)) +
-  facet_wrap(~HasBeenDelinquent)
+  scale_x_continuous(breaks=seq(0,.2,.04), limits=c(0,.2)
+                     ,labels=seq(0,.2,.04)*100) +
+  scale_y_continuous(breaks=seq(.0,.37,.04), labels=seq(.0,.37,.04)*100) +
+  facet_wrap(~HasBeenDelinquent) +
+  xlab('Estimated Return (%)') +
+  ylab('Borrower Rate (%)')
 
 grid.arrange(main_plt, sec_plt, nrow=2)
 
@@ -522,13 +572,15 @@ being able paying their debts.
 
 #### Estimated Return x Risk Rating - For Chargedoffs
 ```{r echo=FALSE, warning=FALSE, message=FALSE,}
-ggplot(data=subset(ld, LoanStatus == 'Chargedoff')
+ggplot(data=subset(ld, LoanStatus == 'Chargedoff' & ProsperRating..Alpha. != '')
        ,aes(x=ProsperRating..Alpha., y=EstimatedReturn)) +
   geom_point(alpha=1/5
     ,position = position_jitter(h=0.1, w=0.3)) +
-  xlab('')
+  scale_y_continuous(breaks = seq(-.2,.30,.05), labels = seq(-.2,.30,.05)*100) +
+  xlab('Risk Rating') +
+  ylab('Estimated Return (%)')
 
-with(subset(ld, LoanStatus == 'Chargedoff'), table(ProsperRating..Alpha.))
+with(subset(ld, LoanStatus == 'Chargedoff'),table(ProsperRating..Alpha.))[2:8]
 ```
 
 ---
@@ -548,7 +600,9 @@ when related to Risk Ratings, and this time considering all possible status.
 ggplot(data=ld
        ,aes(x=ProsperRating..Alpha., y=EstimatedReturn)) +
   geom_boxplot(fill='#e3f6fe', color="#044b69") +
-  xlab('')
+  scale_y_continuous(breaks = seq(-.2,.30,.04), labels = seq(-.2,.30,.04)*100) +
+  xlab('Risk Rating') +
+  ylab('Estimated Return (%)')
 ```
 
 ---
@@ -563,6 +617,10 @@ Besides that, for this data history, **D and E** appear to present better
 results when compared to the other levels. The IQR (Interquartile Range) of
 these two levels are more spread than the others and go from 10% to 15%.
 
+## Bivariate Plots - Review
+
+
+
 ## Multivariate Plots Section
 
 We can go deeper in the analysis and give more sense to our data if we look how
@@ -573,13 +631,18 @@ Let's try it out.
 
 #### Monthly Income x Estimated Return colored by Risk Rating
 ```{r echo=FALSE, warning=FALSE, message=FALSE,}
-ggplot(data=ld
+ggplot(data=subset(ld,ProsperRating..Alpha. != '')
        ,aes(x=EstimatedReturn, y=(StatedMonthlyIncome+1)
             ,color=ProsperRating..Alpha.)) +
-  geom_point() +
+  geom_point(size=.5) +
+  scale_x_continuous(breaks = seq(-.2,.30,.05), labels = seq(-.2,.30,.05)*100) +
   scale_y_continuous(limits=c(10, quantile(ld$StatedMonthlyIncome, .99))
                      ,trans=log10_trans()) +
-  ylab('Monthly Income')
+  xlab('Estimated Return (%)') +
+  ylab('Monthly Income') +
+  # Altering legend parameters:
+  labs(color='Risk Rating') +
+  guides(colour = guide_legend(override.aes = list(size=5)))
 ```
 
 ---
@@ -597,8 +660,12 @@ Also, there is not a clear relationship between **Monthly Income** and
 ggplot(data=subset(ld, ProsperRating..Alpha. != '')
        ,aes(x=BorrowerRate, y=EstimatedReturn, color=ProsperRating..Alpha.)) +
   geom_point(alpha=1/50, size=2) +
+  scale_x_continuous(breaks = seq(.0,.37,.04), labels = seq(.0,.37,.04)*100) +
+  scale_y_continuous(breaks = seq(-.2,.30,.05), labels = seq(-.2,.30,.05)*100) +
   facet_wrap(~ProsperRating..Alpha.) +
-  theme(legend.position="none")
+  # Altering legend parameters:
+  labs(color='Risk Rating') +
+  guides(colour = guide_legend(override.aes = list(alpha=1, size=5)))
 ```
 
 ---
@@ -616,9 +683,10 @@ ggplot(data=subset(ld, ProsperRating..Alpha. != ''),
        aes(x=EstimatedReturn, y=LoanOriginalAmount
            ,color=ProsperRating..Alpha.)) +
   geom_point(alpha=1/100) +
+  scale_x_continuous(breaks = seq(-.2,.30,.05), labels = seq(-.2,.30,.05)*100) +
   scale_y_log10() +
   facet_wrap(~ProsperRating..Alpha.) +
-  theme(legend.position="none") +
+  xlab('Estimated Return (%)') +
   ylab('Loan Amount')
 ```
 
@@ -633,9 +701,11 @@ two variables.
 ```{r echo=FALSE, warning=FALSE, message=FALSE,}
 ggplot(data=subset(ld, ProsperRating..Alpha. != '')
        ,aes(x=ProsperScore, y=EstimatedReturn, color=ProsperRating..Alpha.)) +
-  geom_point(alpha=1/50) +
+  geom_point(alpha=1/50, position=position_jitter(h=0,w=.2)) +
+  scale_y_continuous(breaks = seq(-.2,.30,.05), labels = seq(-.2,.30,.05)*100) +
   facet_wrap(~ProsperRating..Alpha.) +
-  theme(legend.position="none")
+  xlab('Prosper Score') +
+  ylab('Estimated Return (%)')
 ```
 
 ---
@@ -687,11 +757,15 @@ Besides that, we can also see that some listings have a **negative returns**.
 We can also easily notice where the most common values lay.
 
 ### Plot Two
+
+#### Estimated Return x Risk Rating
 ```{r echo=FALSE, Plot_Two}
 ggplot(data=subset(ld,ProsperRating..Alpha. != '')
        ,aes(x=ProsperRating..Alpha., y=EstimatedReturn)) +
+  scale_y_continuous(breaks = seq(-.2,.30,.04), labels = seq(-.2,.30,.04)*100) +
   geom_boxplot(fill='#e3f6fe', color="#044b69") +
-  xlab('')
+  xlab('Risk Rating') +
+  ylab('Estimated Return (%)')
 ```
 
 ### Description Two
@@ -701,12 +775,16 @@ related to each other.
 From here, we can say that the levels **D and E** presents better results.
 
 ### Plot Three
+
+#### Estimated Return x ProsperScore colored by Risk Rating
 ```{r echo=FALSE, Plot_Three}
 ggplot(data=subset(ld, ProsperRating..Alpha. != '')
        ,aes(x=ProsperScore, y=EstimatedReturn, color=ProsperRating..Alpha.)) +
-  geom_point(alpha=1/50) +
+  geom_point(alpha=1/50, position=position_jitter(h=0,w=.2)) +
+  scale_y_continuous(breaks = seq(-.2,.30,.05), labels = seq(-.2,.30,.05)*100) +
   facet_wrap(~ProsperRating..Alpha.) +
-  theme(legend.position="none")
+  xlab('Prosper Score') +
+  ylab('Estimated Return (%)')
 ```
 
 ### Description Three
@@ -733,7 +811,9 @@ in listings that has some risk associated because they would provide me better
 results and even so I would not lose money easily.
 
 Of course I could go further by applying more analysis over data. At first,
-I could try applying [PCA](https://www.r-bloggers.com/computing-and-visualizing-pca-in-r/) to aid me in the process of variables selection.
+I could try applying 
+[PCA](https://www.r-bloggers.com/computing-and-visualizing-pca-in-r/) to aid me 
+in the process of variables selection.
 
 ------
 
