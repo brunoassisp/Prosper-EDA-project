@@ -468,7 +468,7 @@ better_plot <- ggplot(data=subset(ld,ProsperRating..Alpha. != ''),
 
 grid.arrange(overplot, better_plot, nrow=2)
 
-ld.loan_by_risk <- ld %>%
+ld.loan_by_risk <- subset(ld, ProsperRating..Alpha. != '') %>%
   group_by(ProsperRating..Alpha.) %>%
   summarise(mean_loan_amount = mean(LoanOriginalAmount)
             ,median_loan_amount = median(LoanOriginalAmount)
@@ -552,7 +552,7 @@ distributed in the same way.
 
 #### Monthly Income x Prosper Score
 ```{r echo=FALSE, warning=FALSE, message=FALSE,}
-ggplot(data=ld
+ggplot(data=subset(ld, !is.na(ProsperScore))
        ,aes(x=ProsperScore, y=StatedMonthlyIncome)) +
   geom_boxplot(fill='#e3f6fe', color="#044b69") +
   ylim(0, quantile(ld$StatedMonthlyIncome, .99)) +
@@ -597,7 +597,7 @@ when related to Risk Ratings, and this time considering all possible status.
 ---
 
 ```{r echo=FALSE, warning=FALSE, message=FALSE,}
-ggplot(data=ld
+ggplot(data=subset(ld, ProsperRating..Alpha. != '')
        ,aes(x=ProsperRating..Alpha., y=EstimatedReturn)) +
   geom_boxplot(fill='#e3f6fe', color="#044b69") +
   scale_y_continuous(breaks = seq(-.2,.30,.04), labels = seq(-.2,.30,.04)*100) +
@@ -619,13 +619,26 @@ these two levels are more spread than the others and go from 10% to 15%.
 
 ## Bivariate Plots - Review
 
+The plots developed in this section provided some sense over the relationship
+that exists between the selected variables.
 
+Some of them presents some interesting results such as the 
+**Estimated Return x Risk Rating**, while others do not add any insights.
+
+The **Risk Rating** variable and the **Prosper Score** appear to present the
+same idea over the listings since both of them are related to the risk
+associated to each Loan.
+
+We could also perceive that a relationship between the **Monthly Income** and
+the **Prosper Score** occurs, at least in the dataset that we have available.
+
+Well, let's add more variables to our charts.
 
 ## Multivariate Plots Section
 
 We can go deeper in the analysis and give more sense to our data if we look how
 other variables behave by adding then to one of the bivariate plots created
-in the last section.
+in the last section or just by creating new plots with more than 2 variables.
 
 Let's try it out.
 
@@ -687,7 +700,10 @@ ggplot(data=subset(ld, ProsperRating..Alpha. != ''),
   scale_y_log10() +
   facet_wrap(~ProsperRating..Alpha.) +
   xlab('Estimated Return (%)') +
-  ylab('Loan Amount')
+  ylab('Loan Amount') +
+  # Altering legend parameters:
+  labs(color='Risk Rating') +
+  guides(colour = guide_legend(override.aes = list(alpha=1, size=5)))
 ```
 
 ---
@@ -705,7 +721,10 @@ ggplot(data=subset(ld, ProsperRating..Alpha. != '')
   scale_y_continuous(breaks = seq(-.2,.30,.05), labels = seq(-.2,.30,.05)*100) +
   facet_wrap(~ProsperRating..Alpha.) +
   xlab('Prosper Score') +
-  ylab('Estimated Return (%)')
+  ylab('Estimated Return (%)') +
+  # Altering legend parameters:
+  labs(color='Risk Rating') +
+  guides(colour = guide_legend(override.aes = list(alpha=1, size=5)))
 ```
 
 ---
@@ -719,7 +738,7 @@ and **Risk Rating** would have a proportional increase in its risk.
 
 ---
 
-```{r}
+```{r echo=FALSE, warning=FALSE, message=FALSE,}
 ggplot(data=ld
        ,aes(x=ProsperScore, y=EstimatedReturn)) +
   geom_boxplot(fill='#e3f6fe', color="#044b69")
@@ -731,10 +750,23 @@ As higher the risk is (closer to 1), the higher the **Estimated Return** gets.
 
 ---
 
+## Multivariate Plots - Review
+
+One of the main conclusions that I can take from this section is that the
+"support variables" did not bring any valuable insights such as the
+**Monthly Income** or the **Loan Status**.
+
+The main features - **Estimated Return**, **Prosper Score** and **Risk Rating**
+- were the ones that presented more interesting views over the dataset and 
+those would probably be the variables that I would keep analysing for further 
+results and conclusions.
+
 ## Final Plots and Summary
 
 ### Plot One
-```{r echo=FALSE, Plot_One}
+
+#### **Estimated Return** distribution
+```{r echo=FALSE, warning=FALSE, message=FALSE, Plot_One}
 ggplot(data = ld
        ,aes(x = EstimatedReturn)) +
   geom_histogram(color = I('black')
@@ -759,7 +791,7 @@ We can also easily notice where the most common values lay.
 ### Plot Two
 
 #### Estimated Return x Risk Rating
-```{r echo=FALSE, Plot_Two}
+```{r echo=FALSE, warning=FALSE, message=FALSE, Plot_Two}
 ggplot(data=subset(ld,ProsperRating..Alpha. != '')
        ,aes(x=ProsperRating..Alpha., y=EstimatedReturn)) +
   scale_y_continuous(breaks = seq(-.2,.30,.04), labels = seq(-.2,.30,.04)*100) +
@@ -777,14 +809,17 @@ From here, we can say that the levels **D and E** presents better results.
 ### Plot Three
 
 #### Estimated Return x ProsperScore colored by Risk Rating
-```{r echo=FALSE, Plot_Three}
+```{r echo=FALSE, warning=FALSE, message=FALSE, Plot_Three}
 ggplot(data=subset(ld, ProsperRating..Alpha. != '')
        ,aes(x=ProsperScore, y=EstimatedReturn, color=ProsperRating..Alpha.)) +
   geom_point(alpha=1/50, position=position_jitter(h=0,w=.2)) +
   scale_y_continuous(breaks = seq(-.2,.30,.05), labels = seq(-.2,.30,.05)*100) +
   facet_wrap(~ProsperRating..Alpha.) +
   xlab('Prosper Score') +
-  ylab('Estimated Return (%)')
+  ylab('Estimated Return (%)') +
+  # Altering legend parameters:
+  labs(color='Risk Rating') +
+  guides(colour = guide_legend(override.aes = list(alpha=1, size=5)))
 ```
 
 ### Description Three
