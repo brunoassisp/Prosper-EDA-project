@@ -1,10 +1,14 @@
 ---
 output: 
-  html_document: 
-    smart: no
+  html_document:
+    smart: false
+    toc: true
+    toc_depth: 3
+    toc_float: true
 ---
 # Loan Data from Prosper
 **_by Bruno de Assis Pereira_**
+**_February 05, 2018_**
 
 ---
 
