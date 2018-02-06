@@ -8,12 +8,14 @@ output:
 ---
 # Loan Data from Prosper
 **_by Bruno de Assis Pereira_**
+
 **_February 05, 2018_**
 
 ---
 
 In this project, I am going to present an **Exploratory Data Analysis** over a 
-dataset that contains informations about **Loans**. This dataset belongs to [Prosper](https://www.prosper.com/) and it contains **_113,937 loans_** with 
+dataset that contains informations about **Loans**. This dataset belongs to
+[Prosper](https://www.prosper.com/) and it contains **_113,937 loans_** with 
 **_81 variables_** on each loan.
 
 The **Loan Data from Prosper** presents a lot of informations about the profile 
